@@ -107,4 +107,31 @@ app.patch(
   }
 )
 
+app.delete('/file/:localSystemFilePath(*)', (req, res, next) => {
+  const p = path.join(process.cwd(), 'file', req.params.localSystemFilePath)
+
+  fs.stat(p, (err, stats) => {
+    if (err && err.code !== 'ENOENT') {
+      next(err)
+      return
+    }
+    if (!stats) {
+      res.status(404).json({ error: 'File not found' })
+      return
+    }
+    if (stats.isDirectory()) {
+      res.status(404).json({ error: 'File not found' })
+      return
+    }
+
+    fs.unlink(p, (err) => {
+      if (err) {
+        next(err)
+        return
+      }
+      res.json({})
+    })
+  })
+})
+
 export default app
