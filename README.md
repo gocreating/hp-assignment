@@ -12,4 +12,4 @@
     docker-compose up api_server --build
     ```
 
-3. The host is `http://localhost:8000`
+3. Open `http://localhost:8000/file/`
