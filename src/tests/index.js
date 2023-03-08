@@ -157,3 +157,31 @@ describe('Test Update Files', () => {
       })
   })
 })
+
+describe('Test Delete Files', () => {
+  const FILE_NAME = 'some_file.txt'
+
+  beforeEach((done) => {
+    prepareFile(`./${FILE_NAME}`, '', (err) => {
+      if (err) {
+        return done(err)
+      }
+      done()
+    })
+  })
+
+  it('should delete existing file successfully', (done) => {
+    request(app)
+      .delete(`/file/${FILE_NAME}`)
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body).to.deep.equal({})
+        getFileContent(FILE_NAME, (err, _buffer) => {
+          expect(err.code).equal('ENOENT')
+          done()
+        })
+      })
+  })
+})
