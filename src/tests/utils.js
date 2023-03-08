@@ -23,13 +23,13 @@ export const getUtils = (mountRoot) => {
     )
   }
 
-  const prepareFile = (relativeFilePath, fileContent, done) => {
+  const prepareFile = (relativeFilePath, fileContent, done, timeout = 0) => {
     const filePath = path.join(mountRoot, relativeFilePath)
     fs.writeFile(filePath, fileContent, (err) => {
       if (err) {
         return done(err)
       }
-      done()
+      setTimeout(done, timeout)
     })
   }
 
@@ -43,7 +43,7 @@ export const getUtils = (mountRoot) => {
     })
   }
 
-  const prepareDir = (relativeDirPath, done) => {
+  const prepareDir = (relativeDirPath, done, timeout = 0) => {
     const dirPath = path.join(mountRoot, relativeDirPath)
     fs.mkdir(
       dirPath,
@@ -54,7 +54,7 @@ export const getUtils = (mountRoot) => {
         if (err) {
           return done(err)
         }
-        done()
+        setTimeout(done, timeout)
       }
     )
   }

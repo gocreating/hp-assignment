@@ -55,17 +55,45 @@ describe('Test get non-empty directory path', () => {
 
 describe('Test get non-empty directory path with advanced query', () => {
   beforeEach((done) => {
-    utils.prepareFile('./a2.txt', Buffer.alloc(256), () => {
-      utils.prepareFile('./c.txt', Buffer.alloc(128), () => {
-        utils.prepareDir('./b', () => {
-          utils.prepareFile('./a1.txt', Buffer.alloc(512), () => {
-            utils.prepareDir('./a3', () => {
-              utils.prepareFile('./b/bomb.txt', Buffer.alloc(1024), done)
-            })
-          })
-        })
-      })
-    })
+    utils.prepareFile(
+      './a2.txt',
+      Buffer.alloc(256 * 1024),
+      () => {
+        utils.prepareFile(
+          './c.txt',
+          Buffer.alloc(128 * 1024),
+          () => {
+            utils.prepareDir(
+              './b',
+              () => {
+                utils.prepareFile(
+                  './a1.txt',
+                  Buffer.alloc(512 * 1024),
+                  () => {
+                    utils.prepareDir(
+                      './a3',
+                      () => {
+                        utils.prepareFile(
+                          './b/bomb.txt',
+                          Buffer.alloc(1024 * 1024),
+                          done,
+                          10
+                        )
+                      },
+                      10
+                    )
+                  },
+                  10
+                )
+              },
+              10
+            )
+          },
+          10
+        )
+      },
+      10
+    )
   })
 
   it('should retrieve files and dirs with given `filterByName`', (done) => {
