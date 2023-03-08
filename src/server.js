@@ -1,5 +1,6 @@
-import app from './app.js'
+import { getApp } from './app.js'
 
+const app = getApp(process.cwd())
 const port = process.env.PORT || 3000
 
 app.listen(port, () => {

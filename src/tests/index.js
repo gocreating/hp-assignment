@@ -1,16 +1,15 @@
 import { expect } from 'chai'
+import path from 'path'
 import request from 'supertest'
-import app from '../app.js'
-import {
-  getFileContent,
-  prepareDir,
-  prepareFile,
-  prepareUploadFile,
-  resetDir,
-} from './utils.js'
+import { getApp } from '../app.js'
+import { getUtils } from './utils.js'
+
+const mountRoot = path.join(process.cwd(), 'tmp')
+const app = getApp(mountRoot)
+const utils = getUtils(mountRoot)
 
 beforeEach((done) => {
-  resetDir('/', done)
+  utils.resetDir('/', done)
 })
 
 describe('Test get empty directory path', () => {
@@ -29,9 +28,9 @@ describe('Test get empty directory path', () => {
 
 describe('Test get non-empty directory path', () => {
   beforeEach((done) => {
-    prepareFile('./dummyFile1.txt', '', () => {
-      prepareFile('./dummyFile2.txt', '', () => {
-        prepareDir('./dummyDir', done)
+    utils.prepareFile('./dummyFile1.txt', '', () => {
+      utils.prepareFile('./dummyFile2.txt', '', () => {
+        utils.prepareDir('./dummyDir', done)
       })
     })
   })
@@ -56,12 +55,12 @@ describe('Test get non-empty directory path', () => {
 
 describe('Test get non-empty directory path with advanced query', () => {
   beforeEach((done) => {
-    prepareFile('./a2.txt', Buffer.alloc(256), () => {
-      prepareFile('./c.txt', Buffer.alloc(128), () => {
-        prepareDir('./b', () => {
-          prepareFile('./a1.txt', Buffer.alloc(512), () => {
-            prepareDir('./a3', () => {
-              prepareFile('./b/bomb.txt', Buffer.alloc(1024), done)
+    utils.prepareFile('./a2.txt', Buffer.alloc(256), () => {
+      utils.prepareFile('./c.txt', Buffer.alloc(128), () => {
+        utils.prepareDir('./b', () => {
+          utils.prepareFile('./a1.txt', Buffer.alloc(512), () => {
+            utils.prepareDir('./a3', () => {
+              utils.prepareFile('./b/bomb.txt', Buffer.alloc(1024), done)
             })
           })
         })
@@ -165,7 +164,7 @@ describe('Test get existing file path', () => {
   const FILE_CONTENT = 'lorem\nipsum'
 
   beforeEach((done) => {
-    prepareFile(`./${FILE_NAME}`, FILE_CONTENT, (err) => {
+    utils.prepareFile(`./${FILE_NAME}`, FILE_CONTENT, (err) => {
       if (err) {
         return done(err)
       }
@@ -193,7 +192,7 @@ describe('Test post non-existing file path', () => {
   let uploadFilePath
 
   beforeEach((done) => {
-    prepareUploadFile(`./${FILE_NAME}`, FILE_CONTENT, (err, p) => {
+    utils.prepareUploadFile(`./${FILE_NAME}`, FILE_CONTENT, (err, p) => {
       if (err) {
         return done(err)
       }
@@ -211,7 +210,7 @@ describe('Test post non-existing file path', () => {
           return done(err)
         }
         expect(res.body).to.deep.equal({})
-        getFileContent(FILE_NAME, (err, buffer) => {
+        utils.getFileContent(FILE_NAME, (err, buffer) => {
           if (err) {
             return done(err)
           }
@@ -228,11 +227,11 @@ describe('Test post existing file path', () => {
   let uploadFilePath
 
   beforeEach((done) => {
-    prepareFile(`./${FILE_NAME}`, '', (err) => {
+    utils.prepareFile(`./${FILE_NAME}`, '', (err) => {
       if (err) {
         return done(err)
       }
-      prepareUploadFile(`./${FILE_NAME}`, FILE_CONTENT, (err, p) => {
+      utils.prepareUploadFile(`./${FILE_NAME}`, FILE_CONTENT, (err, p) => {
         if (err) {
           return done(err)
         }
@@ -257,11 +256,11 @@ describe('Test patch existing file path', () => {
   let uploadFilePath
 
   beforeEach((done) => {
-    prepareFile(`./${FILE_NAME}`, OLD_FILE_CONTENT, (err) => {
+    utils.prepareFile(`./${FILE_NAME}`, OLD_FILE_CONTENT, (err) => {
       if (err) {
         return done(err)
       }
-      prepareUploadFile(`./${FILE_NAME}`, NEW_FILE_CONTENT, (err, p) => {
+      utils.prepareUploadFile(`./${FILE_NAME}`, NEW_FILE_CONTENT, (err, p) => {
         if (err) {
           return done(err)
         }
@@ -280,7 +279,7 @@ describe('Test patch existing file path', () => {
           return done(err)
         }
         expect(res.body).to.deep.equal({})
-        getFileContent(FILE_NAME, (err, buffer) => {
+        utils.getFileContent(FILE_NAME, (err, buffer) => {
           if (err) {
             return done(err)
           }
@@ -295,7 +294,7 @@ describe('Test delete existing file path', () => {
   const FILE_NAME = 'some_file.txt'
 
   beforeEach((done) => {
-    prepareFile(`./${FILE_NAME}`, '', (err) => {
+    utils.prepareFile(`./${FILE_NAME}`, '', (err) => {
       if (err) {
         return done(err)
       }
@@ -311,7 +310,7 @@ describe('Test delete existing file path', () => {
           return done(err)
         }
         expect(res.body).to.deep.equal({})
-        getFileContent(FILE_NAME, (err, _buffer) => {
+        utils.getFileContent(FILE_NAME, (err, _buffer) => {
           expect(err.code).equal('ENOENT')
           done()
         })
