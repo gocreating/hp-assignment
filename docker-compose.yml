@@ -1,0 +1,11 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - PORT=8000
+    ports:
+      - 8000:8000
+    volumes:
+      - ./file:/app/file
