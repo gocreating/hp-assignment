@@ -1,5 +1,5 @@
 services:
-  backend:
+  api_server:
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -9,3 +9,8 @@ services:
       - 8000:8000
     volumes:
       - ./file:/app/file
+  test_session:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: mocha src/tests/index.js

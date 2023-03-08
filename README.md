@@ -1,9 +1,15 @@
 # HP Assignment
 
-1. Launch Everything
+1. Run Test
 
     ```shell
-    docker-compose up --build
+    docker-compose up test_session --build
     ```
 
-2. The host is `http://localhost:8000`
+2. Launch API Server
+
+    ```shell
+    docker-compose up api_server --build
+    ```
+
+3. The host is `http://localhost:8000`
