@@ -54,6 +54,34 @@ describe('Test get non-empty directory path', () => {
   })
 })
 
+describe('Test get non-empty directory path with advanced query', () => {
+  beforeEach((done) => {
+    prepareFile('./a2.txt', '', () => {
+      prepareFile('./c.txt', '', () => {
+        prepareDir('./b', () => {
+          prepareFile('./a1.txt', '', () => {
+            prepareDir('./a3', done)
+          })
+        })
+      })
+    })
+  })
+
+  it('should retrieve files and dirs with given `filterByName`', (done) => {
+    request(app)
+      .get('/file/')
+      .query({ filterByName: 'a' })
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body.files).to.include.members(['a1.txt', 'a2.txt', 'a3/'])
+        expect(res.body.files).to.not.include.members(['b/', 'c.txt'])
+        done()
+      })
+  })
+})
+
 describe('Test get existing file path', () => {
   const FILE_NAME = 'some_file.txt'
   const FILE_CONTENT = 'lorem\nipsum'
