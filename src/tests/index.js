@@ -56,11 +56,13 @@ describe('Test get non-empty directory path', () => {
 
 describe('Test get non-empty directory path with advanced query', () => {
   beforeEach((done) => {
-    prepareFile('./a2.txt', '', () => {
-      prepareFile('./c.txt', '', () => {
+    prepareFile('./a2.txt', Buffer.alloc(256), () => {
+      prepareFile('./c.txt', Buffer.alloc(128), () => {
         prepareDir('./b', () => {
-          prepareFile('./a1.txt', '', () => {
-            prepareDir('./a3', done)
+          prepareFile('./a1.txt', Buffer.alloc(512), () => {
+            prepareDir('./a3', () => {
+              prepareFile('./b/bomb.txt', Buffer.alloc(1024), done)
+            })
           })
         })
       })
@@ -77,6 +79,82 @@ describe('Test get non-empty directory path with advanced query', () => {
         }
         expect(res.body.files).to.include.members(['a1.txt', 'a2.txt', 'a3/'])
         expect(res.body.files).to.not.include.members(['b/', 'c.txt'])
+        done()
+      })
+  })
+
+  it('should retrieve files and dirs with given default ascending `fileName` order', (done) => {
+    request(app)
+      .get('/file/')
+      .query({ orderBy: 'fileName' })
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body.files).to.deep.equal([
+          'a1.txt',
+          'a2.txt',
+          'a3/',
+          'b/',
+          'c.txt',
+        ])
+        done()
+      })
+  })
+
+  it('should retrieve files and dirs with given descending `fileName` order', (done) => {
+    request(app)
+      .get('/file/')
+      .query({ orderBy: 'fileName', orderByDirection: 'Descending' })
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body.files).to.deep.equal([
+          'c.txt',
+          'b/',
+          'a3/',
+          'a2.txt',
+          'a1.txt',
+        ])
+        done()
+      })
+  })
+
+  it('should retrieve files and dirs with given default ascending `lastModified` order', (done) => {
+    request(app)
+      .get('/file/')
+      .query({ orderBy: 'lastModified' })
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body.files).to.deep.equal([
+          'a2.txt',
+          'c.txt',
+          'a1.txt',
+          'a3/',
+          'b/',
+        ])
+        done()
+      })
+  })
+
+  it('should retrieve files and dirs with given default ascending `size` order', (done) => {
+    request(app)
+      .get('/file/')
+      .query({ orderBy: 'size' })
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body.files).to.deep.equal([
+          'a3/', // 0
+          'c.txt', // ~128
+          'a2.txt', // ~256
+          'a1.txt', // ~512
+          'b/', // ~1024
+        ])
         done()
       })
   })

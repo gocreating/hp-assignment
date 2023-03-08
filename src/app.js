@@ -1,4 +1,5 @@
 import express from 'express'
+import fastFolderSizeSync from 'fast-folder-size/sync.js'
 import fs from 'fs'
 import path from 'path'
 import upload from './upload.js'
@@ -26,11 +27,67 @@ app.get('/file/:localSystemFilePath(*)', (req, res, next) => {
           next(err)
           return
         }
-        res.json({
+        let files = rawFiles
+        if (req.query.filterByName) {
+          files = files.filter((file) =>
+            file.name
+              .toLowerCase()
+              .includes(req.query.filterByName.toLowerCase())
+          )
+        }
+        if (req.query.orderBy) {
+          const orderByDirection = req.query.orderByDirection || 'Ascending'
+          const getSortKey = {
+            lastModified: (file) => {
+              const stats = fs.statSync(path.join(p, file.name))
+              return stats.mtimeMs
+            },
+            size: (file) => {
+              const q = path.join(p, file.name)
+              if (file.isDirectory()) {
+                const bytes = fastFolderSizeSync(q)
+                return bytes
+              } else {
+                const stats = fs.statSync(q)
+                return stats.size
+              }
+            },
+            fileName: (file) => file.name,
+          }[req.query.orderBy]
+          let sorter
+          if (orderByDirection === 'Ascending') {
+            sorter = (file1, file2) => {
+              const k1 = getSortKey(file1)
+              const k2 = getSortKey(file2)
+              if (k1 < k2) {
+                return -1
+              } else if (k1 > k2) {
+                return 1
+              } else {
+                return 0
+              }
+            }
+          } else if (orderByDirection === 'Descending') {
+            sorter = (file1, file2) => {
+              const k1 = getSortKey(file1)
+              const k2 = getSortKey(file2)
+              if (k1 < k2) {
+                return 1
+              } else if (k1 > k2) {
+                return -1
+              } else {
+                return 0
+              }
+            }
+          }
+          files = files.sort(sorter)
+        }
+        files = files.map((file) =>
+          file.isDirectory() ? `${file.name}/` : file.name
+        )
+        files = res.json({
           isDirectory: true,
-          files: files.map((file) =>
-            file.isDirectory() ? `${file.name}/` : file.name
-          ),
+          files,
         })
       })
     } else {
