@@ -13,8 +13,8 @@ beforeEach((done) => {
   resetDir('/', done)
 })
 
-describe('Test read directory path', () => {
-  it('should read empty directory successfully', (done) => {
+describe('Test get empty directory path', () => {
+  it('should read directory successfully', (done) => {
     request(app)
       .get('/file/')
       .expect(200, (err, res) => {
@@ -27,7 +27,7 @@ describe('Test read directory path', () => {
   })
 })
 
-describe('Test read directory path', () => {
+describe('Test get non-empty directory path', () => {
   beforeEach((done) => {
     prepareFile('./dummyFile1.txt', '', () => {
       prepareFile('./dummyFile2.txt', '', () => {
@@ -54,7 +54,34 @@ describe('Test read directory path', () => {
   })
 })
 
-describe('Test Create Files', () => {
+describe('Test get existing file path', () => {
+  const FILE_NAME = 'some_file.txt'
+  const FILE_CONTENT = 'lorem\nipsum'
+
+  beforeEach((done) => {
+    prepareFile(`./${FILE_NAME}`, FILE_CONTENT, (err) => {
+      if (err) {
+        return done(err)
+      }
+      done()
+    })
+  })
+
+  it('should retrieve file content', (done) => {
+    request(app)
+      .get(`/file/${FILE_NAME}`)
+      .responseType('blob')
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body.toString()).equal(FILE_CONTENT)
+        done()
+      })
+  })
+})
+
+describe('Test post non-existing file path', () => {
   const FILE_NAME = 'some_file.txt'
   const FILE_CONTENT = 'lorem\nipsum'
   let uploadFilePath
@@ -89,7 +116,7 @@ describe('Test Create Files', () => {
   })
 })
 
-describe('Test Create Files', () => {
+describe('Test post existing file path', () => {
   const FILE_NAME = 'some_file.txt'
   const FILE_CONTENT = 'lorem\nipsum'
   let uploadFilePath
@@ -109,7 +136,7 @@ describe('Test Create Files', () => {
     })
   })
 
-  it('should fail when path conflicts', (done) => {
+  it('should fail due to path confliction', (done) => {
     request(app)
       .post(`/file/${FILE_NAME}`)
       .attach('file', uploadFilePath)
@@ -117,7 +144,7 @@ describe('Test Create Files', () => {
   })
 })
 
-describe('Test Update Files', () => {
+describe('Test patch existing file path', () => {
   const FILE_NAME = 'some_file.txt'
   const OLD_FILE_CONTENT = 'lorem\nipsum\nv1'
   const NEW_FILE_CONTENT = 'lorem\nipsum\nv2'
@@ -138,7 +165,7 @@ describe('Test Update Files', () => {
     })
   })
 
-  it('should update existing file successfully', (done) => {
+  it('should replace file content successfully', (done) => {
     request(app)
       .patch(`/file/${FILE_NAME}`)
       .attach('file', uploadFilePath)
@@ -158,7 +185,7 @@ describe('Test Update Files', () => {
   })
 })
 
-describe('Test Delete Files', () => {
+describe('Test delete existing file path', () => {
   const FILE_NAME = 'some_file.txt'
 
   beforeEach((done) => {
@@ -170,7 +197,7 @@ describe('Test Delete Files', () => {
     })
   })
 
-  it('should delete existing file successfully', (done) => {
+  it('should delete file successfully', (done) => {
     request(app)
       .delete(`/file/${FILE_NAME}`)
       .expect(200, (err, res) => {
