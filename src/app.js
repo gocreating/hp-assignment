@@ -56,7 +56,7 @@ app.post(
         return
       }
       if (stats) {
-        res.status(404).json({ error: 'Path exist' })
+        res.status(403).json({ error: 'Path exist' })
         return
       }
       fs.mkdir(dir, { recursive: true }, (err) => {

@@ -88,3 +88,31 @@ describe('Test Create Files', () => {
       })
   })
 })
+
+describe('Test Create Files', () => {
+  const FILE_NAME = 'some_file.txt'
+  const FILE_CONTENT = 'lorem\nipsum'
+  let uploadFilePath
+
+  beforeEach((done) => {
+    prepareFile(`./${FILE_NAME}`, '', (err) => {
+      if (err) {
+        return done(err)
+      }
+      prepareUploadFile(`./${FILE_NAME}`, FILE_CONTENT, (err, p) => {
+        if (err) {
+          return done(err)
+        }
+        uploadFilePath = p
+        done()
+      })
+    })
+  })
+
+  it('should fail when path conflicts', (done) => {
+    request(app)
+      .post(`/file/${FILE_NAME}`)
+      .attach('file', uploadFilePath)
+      .expect(403, done)
+  })
+})
