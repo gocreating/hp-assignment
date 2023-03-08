@@ -116,3 +116,44 @@ describe('Test Create Files', () => {
       .expect(403, done)
   })
 })
+
+describe('Test Update Files', () => {
+  const FILE_NAME = 'some_file.txt'
+  const OLD_FILE_CONTENT = 'lorem\nipsum\nv1'
+  const NEW_FILE_CONTENT = 'lorem\nipsum\nv2'
+  let uploadFilePath
+
+  beforeEach((done) => {
+    prepareFile(`./${FILE_NAME}`, OLD_FILE_CONTENT, (err) => {
+      if (err) {
+        return done(err)
+      }
+      prepareUploadFile(`./${FILE_NAME}`, NEW_FILE_CONTENT, (err, p) => {
+        if (err) {
+          return done(err)
+        }
+        uploadFilePath = p
+        done()
+      })
+    })
+  })
+
+  it('should update existing file successfully', (done) => {
+    request(app)
+      .patch(`/file/${FILE_NAME}`)
+      .attach('file', uploadFilePath)
+      .expect(200, (err, res) => {
+        if (err) {
+          return done(err)
+        }
+        expect(res.body).to.deep.equal({})
+        getFileContent(FILE_NAME, (err, buffer) => {
+          if (err) {
+            return done(err)
+          }
+          expect(buffer.toString()).equal(NEW_FILE_CONTENT)
+          done()
+        })
+      })
+  })
+})
